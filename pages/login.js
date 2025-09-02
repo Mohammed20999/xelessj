@@ -53,16 +53,16 @@ export default function Login() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('email')}
+              Username
             </label>
             <input
               id="email"
-              type="email"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder={t('email')}
+              placeholder="Username"
             />
           </div>
 

@@ -6,6 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS users (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
   name TEXT,
   email TEXT UNIQUE NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin', 'staff', 'client')),
@@ -51,17 +52,22 @@ CREATE TABLE IF NOT EXISTS problem_reports (
 );
 
 -- Add foreign key constraint for assigned_room_id
-ALTER TABLE users ADD CONSTRAINT fk_users_assigned_room 
-  FOREIGN KEY (assigned_room_id) REFERENCES rooms(id);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_users_assigned_room') THEN
+    ALTER TABLE users ADD CONSTRAINT fk_users_assigned_room 
+      FOREIGN KEY (assigned_room_id) REFERENCES rooms(id);
+  END IF;
+END $$;
 
 -- Create indexes for better performance
-CREATE INDEX idx_cleaning_logs_room_id ON cleaning_logs(room_id);
-CREATE INDEX idx_cleaning_logs_user_id ON cleaning_logs(user_id);
-CREATE INDEX idx_cleaning_logs_timestamp ON cleaning_logs(timestamp);
-CREATE INDEX idx_problem_reports_client_id ON problem_reports(client_id);
-CREATE INDEX idx_problem_reports_room_id ON problem_reports(room_id);
-CREATE INDEX idx_problem_reports_status ON problem_reports(status);
-CREATE INDEX idx_rooms_location_id ON rooms(location_id);
+CREATE INDEX IF NOT EXISTS idx_cleaning_logs_room_id ON cleaning_logs(room_id);
+CREATE INDEX IF NOT EXISTS idx_cleaning_logs_user_id ON cleaning_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_cleaning_logs_timestamp ON cleaning_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_problem_reports_client_id ON problem_reports(client_id);
+CREATE INDEX IF NOT EXISTS idx_problem_reports_room_id ON problem_reports(room_id);
+CREATE INDEX IF NOT EXISTS idx_problem_reports_status ON problem_reports(status);
+CREATE INDEX IF NOT EXISTS idx_rooms_location_id ON rooms(location_id);
 
 -- Row Level Security (RLS) policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -156,8 +162,8 @@ CREATE POLICY "Admins can update reports" ON problem_reports
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, email, name, role)
-  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name', 'client');
+  INSERT INTO public.users (id, username, email, name, role)
+  VALUES (NEW.id, NEW.raw_user_meta_data->>'username', NEW.email, NEW.raw_user_meta_data->>'name', 'client');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
