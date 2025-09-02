@@ -4,7 +4,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Users table (extends Supabase auth.users)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   name TEXT,
   email TEXT UNIQUE NOT NULL,
@@ -15,14 +15,14 @@ CREATE TABLE users (
 );
 
 -- Locations/Buildings table
-CREATE TABLE locations (
+CREATE TABLE IF NOT EXISTS locations (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   building_name TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Rooms table
-CREATE TABLE rooms (
+CREATE TABLE IF NOT EXISTS rooms (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   location_id UUID REFERENCES locations(id) NOT NULL,
   room_number TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE rooms (
 );
 
 -- Cleaning logs table
-CREATE TABLE cleaning_logs (
+CREATE TABLE IF NOT EXISTS cleaning_logs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   room_id UUID REFERENCES rooms(id) NOT NULL,
   user_id UUID REFERENCES users(id) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE cleaning_logs (
 );
 
 -- Problem reports table
-CREATE TABLE problem_reports (
+CREATE TABLE IF NOT EXISTS problem_reports (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   client_id UUID REFERENCES users(id) NOT NULL,
   room_id UUID REFERENCES rooms(id) NOT NULL,
