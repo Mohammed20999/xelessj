@@ -53,7 +53,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+              Username or Email
             </label>
             <input
               id="email"
@@ -62,7 +62,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder="Username"
+              placeholder="Username or Email"
             />
           </div>
 
